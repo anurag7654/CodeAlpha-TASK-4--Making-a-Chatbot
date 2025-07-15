@@ -2,11 +2,11 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import openai
 import os
+import traceback
 
 app = Flask(__name__)
 CORS(app)
 
-# ✅ Correct OpenAI client for SDK >= 1.0.0
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route("/")
@@ -15,10 +15,10 @@ def home():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    data = request.get_json()
-    user_message = data.get("message")
-
     try:
+        data = request.get_json()
+        user_message = data.get("message")
+
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": user_message}],
@@ -28,10 +28,10 @@ def chat():
         return jsonify({"reply": reply})
 
     except Exception as e:
-        print("❌ Error while calling OpenAI API:", e)
+        print("❌ OpenAI API ERROR:", e)
+        traceback.print_exc()
         return jsonify({"reply": "Sorry, something went wrong."}), 500
 
-# ✅ This is required for Render
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
 
