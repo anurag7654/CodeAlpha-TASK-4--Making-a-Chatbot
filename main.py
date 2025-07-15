@@ -6,7 +6,7 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# Set up the OpenAI client for newer SDK
+# ✅ Correct OpenAI client for SDK >= 1.0.0
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route("/")
@@ -28,10 +28,10 @@ def chat():
         return jsonify({"reply": reply})
 
     except Exception as e:
-        print("Error from OpenAI API:", e)
+        print("❌ Error while calling OpenAI API:", e)
         return jsonify({"reply": "Sorry, something went wrong."}), 500
 
-# ✅ Required for Render to run correctly
+# ✅ This is required for Render
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
 
