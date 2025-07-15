@@ -6,7 +6,8 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-openai.api_key = os.getenv("anurag")
+# Set up the OpenAI client for newer SDK
+client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route("/")
 def home():
@@ -17,14 +18,20 @@ def chat():
     data = request.get_json()
     user_message = data.get("message")
 
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": user_message}],
-        max_tokens=150
-    )
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": user_message}],
+            max_tokens=150
+        )
+        reply = response.choices[0].message.content.strip()
+        return jsonify({"reply": reply})
 
-    reply = response.choices[0].message.content.strip()
-    return jsonify({"reply": reply})
+    except Exception as e:
+        print("Error from OpenAI API:", e)
+        return jsonify({"reply": "Sorry, something went wrong."}), 500
 
+# ✅ Required for Render to run correctly
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
